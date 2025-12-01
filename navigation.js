@@ -70,9 +70,11 @@ function loadChallengeForCurrentDate() {
     
     setupGameForChallenge(challenge);
     
+    // Always check if the challenge was completed, regardless of viewing past or present
+    checkIfAlreadyPlayedDate(currentDate);
+    
     if (isViewingPast) {
         document.getElementById('startGameBtn').textContent = 'Play Past Challenge';
-        checkIfAlreadyPlayedDate(currentDate);
     }
 }
 
@@ -214,9 +216,14 @@ function checkIfAlreadyPlayedDate(date) {
     const dateKey = `screenstreak_${dateStr}`;
     const played = localStorage.getItem(dateKey);
     
+    const btn = document.getElementById('startGameBtn');
+    
+    // Reset button state first
+    btn.classList.remove('completed', 'attempted');
+    btn.style.display = 'block';
+    
     if (played) {
         const result = JSON.parse(played);
-        const btn = document.getElementById('startGameBtn');
         if (result.completed) {
             btn.textContent = '✓ Completed';
             btn.classList.add('completed');
@@ -224,6 +231,9 @@ function checkIfAlreadyPlayedDate(date) {
             btn.textContent = 'Already Attempted';
             btn.classList.add('attempted');
         }
+    } else {
+        // No previous attempt - reset to default
+        btn.textContent = 'Start Challenge';
     }
 }
 

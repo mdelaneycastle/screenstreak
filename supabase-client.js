@@ -145,6 +145,15 @@ async function saveDailyScore(completed, timeTaken, moves) {
                 time_taken: timeTaken,
                 moves
             };
+            
+            // Also save to localStorage for immediate UI updates
+            const localStorageKey = `screenstreak_${today}`;
+            localStorage.setItem(localStorageKey, JSON.stringify({
+                completed,
+                time_taken: timeTaken,
+                moves,
+                challenge_date: today
+            }));
         }
     } catch (err) {
         console.error('Failed to save score:', err);
@@ -162,6 +171,17 @@ async function loadUserStats() {
             .order('challenge_date', { ascending: false });
         
         if (!error && data) {
+            // Sync Supabase data to localStorage for navigation consistency
+            data.forEach(score => {
+                const localStorageKey = `screenstreak_${score.challenge_date}`;
+                localStorage.setItem(localStorageKey, JSON.stringify({
+                    completed: score.completed,
+                    time_taken: score.time_taken,
+                    moves: score.moves,
+                    challenge_date: score.challenge_date
+                }));
+            });
+            
             calculateStreak(data);
             checkTodayAttempt(data);
         }
