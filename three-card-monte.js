@@ -129,7 +129,7 @@ function showTargetCard() {
 
 function startShuffling() {
     monteGameState.isShuffling = true;
-    const shuffleSpeed = 500 - (monteGameState.difficulty * 60);
+    const shuffleSpeed = 600 - (monteGameState.difficulty * 70);
     const numberOfShuffles = 5 + (monteGameState.difficulty * 2);
     
     let shufflesDone = 0;
@@ -156,20 +156,38 @@ function swapCards(idx1, idx2) {
     const card1 = cards[idx1];
     const card2 = cards[idx2];
     
+    if (!card1 || !card2 || idx1 === idx2) {
+        console.log('Invalid swap attempt:', idx1, idx2);
+        return;
+    }
+    
     const temp = monteGameState.cards[idx1];
     monteGameState.cards[idx1] = monteGameState.cards[idx2];
     monteGameState.cards[idx2] = temp;
     
+    const container = document.getElementById('cardsContainer');
+    const containerRect = container.getBoundingClientRect();
     const card1Rect = card1.getBoundingClientRect();
     const card2Rect = card2.getBoundingClientRect();
-    const distance = card2Rect.left - card1Rect.left;
+    
+    const card1Left = card1Rect.left - containerRect.left;
+    const card2Left = card2Rect.left - containerRect.left;
+    const distance = card2Left - card1Left;
+    
+    if (Math.abs(distance) < 10) {
+        console.log('Distance too small, skipping animation');
+        renderCards();
+        return;
+    }
     
     card1.style.transform = `translateX(${distance}px)`;
     card2.style.transform = `translateX(${-distance}px)`;
-    card1.style.transition = 'transform 0.4s ease-in-out';
-    card2.style.transition = 'transform 0.4s ease-in-out';
+    card1.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    card2.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     card1.style.zIndex = '10';
     card2.style.zIndex = '10';
+    
+    console.log(`Swapping cards ${idx1} and ${idx2}, distance: ${distance}px`);
     
     setTimeout(() => {
         card1.style.transform = '';
@@ -179,7 +197,7 @@ function swapCards(idx1, idx2) {
         card1.style.zIndex = '';
         card2.style.zIndex = '';
         renderCards();
-    }, 400);
+    }, 500);
 }
 
 function selectCard(index) {
