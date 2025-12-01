@@ -25,6 +25,10 @@ function initializeMonteGame() {
     monteGameState.selectedCard = null;
     monteGameState.shuffleCount = 0;
     monteGameState.moves = 0;
+}
+
+function initializeFullMonteGame() {
+    initializeMonteGame();
     monteGameState.difficulty = 1;
 }
 
@@ -42,7 +46,7 @@ function startMonteGame() {
     monteGameState.moves = 0;
     monteGameState.timeRemaining = 180;
     
-    initializeMonteGame();
+    initializeFullMonteGame();
     renderCards();
     showTargetCard();
     startMonteTimer();
