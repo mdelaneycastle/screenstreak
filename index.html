@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineQuest - Daily Movie Challenge</title>
+    <title>ScreenStreak - Daily Movie Challenge</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="monte-styles.css">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1 class="logo">CineQuest</h1>
+            <h1 class="logo">ScreenStreak</h1>
             <div class="user-info">
                 <div id="userDisplay" class="hidden">
                     <span id="userName"></span>
@@ -24,60 +25,98 @@
 
         <main>
             <div class="challenge-header">
-                <h2>Today's Challenge</h2>
+                <h2 id="challengeDate">Today's Challenge</h2>
                 <div class="challenge-info">
-                    <span class="movie-title">Die Hard with a Vengeance (1995)</span>
-                    <span class="challenge-number">Challenge #1</span>
+                    <span class="movie-title">Loading...</span>
+                    <span class="challenge-number">Challenge #...</span>
+                </div>
+                <div class="challenge-name"></div>
+                <div class="challenge-navigation">
+                    <button id="prevChallenge" class="nav-btn">← Previous</button>
+                    <span id="dateDisplay"></span>
+                    <button id="nextChallenge" class="nav-btn">Next →</button>
                 </div>
             </div>
 
             <div class="game-container" id="gameContainer">
                 <div class="game-intro" id="gameIntro">
-                    <h3>The Water Jug Problem</h3>
-                    <p class="movie-quote">"On the fountain are two jugs. Do you see them? A 5-gallon and a 3-gallon. Fill one jug with exactly 4 gallons of water and place it on the scale, and the timer will stop."</p>
-                    <p class="instructions">Use the 3-gallon and 5-gallon jugs to measure exactly 4 gallons. Click on jugs to fill, empty, or pour between them.</p>
+                    <h3 class="challenge-name">Loading Challenge...</h3>
+                    <p class="challenge-description"></p>
+                    <p class="movie-quote"></p>
+                    <p class="instructions"></p>
                     <button class="start-btn" id="startGameBtn">Start Challenge</button>
                 </div>
 
-                <div class="game-area hidden" id="gameArea">
-                    <div class="timer-container">
-                        <div class="timer" id="timer">5:00</div>
-                        <div class="moves">Moves: <span id="moveCount">0</span></div>
+                <!-- Water Jug Game -->
+                <div class="game-specific hidden" id="waterJugGame">
+                    <div class="game-area hidden" id="gameArea">
+                        <div class="timer-container">
+                            <div class="timer" id="timer">5:00</div>
+                            <div class="moves">Moves: <span id="moveCount">0</span></div>
+                        </div>
+
+                        <div class="jugs-container">
+                            <div class="jug-wrapper">
+                                <div class="jug jug-3" id="jug3">
+                                    <div class="water-level" id="water3"></div>
+                                    <span class="jug-label">3 Gallons</span>
+                                    <span class="current-amount" id="amount3">0/3</span>
+                                </div>
+                                <div class="jug-actions">
+                                    <button class="action-btn" onclick="fillJug(3)">Fill</button>
+                                    <button class="action-btn" onclick="emptyJug(3)">Empty</button>
+                                    <button class="action-btn" onclick="pourJug(3, 5)">Pour to 5G</button>
+                                </div>
+                            </div>
+
+                            <div class="jug-wrapper">
+                                <div class="jug jug-5" id="jug5">
+                                    <div class="water-level" id="water5"></div>
+                                    <span class="jug-label">5 Gallons</span>
+                                    <span class="current-amount" id="amount5">0/5</span>
+                                </div>
+                                <div class="jug-actions">
+                                    <button class="action-btn" onclick="fillJug(5)">Fill</button>
+                                    <button class="action-btn" onclick="emptyJug(5)">Empty</button>
+                                    <button class="action-btn" onclick="pourJug(5, 3)">Pour to 3G</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="target-display">
+                            <div class="target-box">
+                                <span>Target: 4 Gallons</span>
+                                <span class="hint-text">Get exactly 4 gallons in either jug!</span>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="jugs-container">
-                        <div class="jug-wrapper">
-                            <div class="jug jug-3" id="jug3">
-                                <div class="water-level" id="water3"></div>
-                                <span class="jug-label">3 Gallons</span>
-                                <span class="current-amount" id="amount3">0/3</span>
-                            </div>
-                            <div class="jug-actions">
-                                <button class="action-btn" onclick="fillJug(3)">Fill</button>
-                                <button class="action-btn" onclick="emptyJug(3)">Empty</button>
-                                <button class="action-btn" onclick="pourJug(3, 5)">Pour to 5G</button>
-                            </div>
+                <!-- Three Card Monte Game -->
+                <div class="game-specific hidden" id="threeCardMonteGame">
+                    <div class="game-area hidden" id="monteGameArea">
+                        <div class="timer-container">
+                            <div class="timer" id="monteTimer">3:00</div>
+                            <div class="moves">Round: <span id="roundNumber">1</span>/5</div>
                         </div>
 
-                        <div class="jug-wrapper">
-                            <div class="jug jug-5" id="jug5">
-                                <div class="water-level" id="water5"></div>
-                                <span class="jug-label">5 Gallons</span>
-                                <span class="current-amount" id="amount5">0/5</span>
-                            </div>
-                            <div class="jug-actions">
-                                <button class="action-btn" onclick="fillJug(5)">Fill</button>
-                                <button class="action-btn" onclick="emptyJug(5)">Empty</button>
-                                <button class="action-btn" onclick="pourJug(5, 3)">Pour to 3G</button>
-                            </div>
+                        <div class="monte-instructions">
+                            <p>Track the <span style="color: red;">♥</span> card through the shuffles!</p>
                         </div>
+
+                        <div class="cards-container" id="cardsContainer">
+                            <!-- Cards will be generated here -->
+                        </div>
+
+                        <div class="monte-status" id="monteStatus"></div>
                     </div>
+                </div>
 
-                    <div class="target-display">
-                        <div class="target-box">
-                            <span>Target: 4 Gallons</span>
-                            <span class="hint-text">Get exactly 4 gallons in either jug!</span>
-                        </div>
+                <!-- Coming Soon Placeholder -->
+                <div class="game-specific hidden" id="comingSoonGame">
+                    <div class="coming-soon-message">
+                        <h3>Coming Soon!</h3>
+                        <p id="comingSoonMessage"></p>
                     </div>
                 </div>
 
@@ -100,6 +139,15 @@
                     </div>
                 </div>
             </div>
+
+            <div class="previous-challenges">
+                <h3>Recent Challenges</h3>
+                <div class="challenge-links">
+                    <a href="?date=2024-11-30" class="challenge-link">
+                        November 30 - <span id="nov30Challenge"></span>
+                    </a>
+                </div>
+            </div>
         </main>
 
         <footer>
@@ -112,7 +160,10 @@
 
     <script src="config.js"></script>
     <script src="auth.js"></script>
+    <script src="challenge-system.js"></script>
     <script src="game.js"></script>
+    <script src="three-card-monte.js"></script>
+    <script src="navigation.js"></script>
     <script src="supabase-client.js"></script>
 </body>
 </html>
