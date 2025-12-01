@@ -129,14 +129,21 @@ function showTargetCard() {
 
 function startShuffling() {
     monteGameState.isShuffling = true;
-    const shuffleSpeed = 700 - (monteGameState.difficulty * 80);
-    const numberOfShuffles = 5 + (monteGameState.difficulty * 2);
     
+    // Calculate speed based on difficulty
+    const shuffleSpeed = 700 - (monteGameState.difficulty * 80);
+    // Animation must be slightly faster than the interval to allow for cleanup
+    const animationDuration = shuffleSpeed - 50; 
+    
+    const numberOfShuffles = 5 + (monteGameState.difficulty * 2);
     let shufflesDone = 0;
+
     const shuffleInterval = setInterval(() => {
         if (shufflesDone >= numberOfShuffles) {
             clearInterval(shuffleInterval);
             monteGameState.isShuffling = false;
+            // Only re-render purely to clean up any potential CSS residue at the very end
+            setTimeout(() => renderCards(), 500); 
             return;
         }
         
@@ -146,85 +153,71 @@ function startShuffling() {
             idx2 = Math.floor(Math.random() * 3);
         }
         
-        swapCards(idx1, idx2);
+        // Pass the calculated duration to the swap function
+        swapCards(idx1, idx2, animationDuration);
         shufflesDone++;
     }, shuffleSpeed);
 }
 
-function swapCards(idx1, idx2) {
-    if (idx1 === idx2) {
-        console.log('Same card swap attempt, skipping');
-        return;
-    }
+function swapCards(idx1, idx2, duration = 600) {
+    if (idx1 === idx2) return;
     
-    // Swap the data first
+    // 1. Swap the data
     const temp = monteGameState.cards[idx1];
     monteGameState.cards[idx1] = monteGameState.cards[idx2];
     monteGameState.cards[idx2] = temp;
     
-    // Get fresh references to the DOM elements
+    // 2. Get DOM elements
     const cards = document.querySelectorAll('.card');
     const card1 = cards[idx1];
     const card2 = cards[idx2];
     
-    if (!card1 || !card2) {
-        console.log('Card elements not found, re-rendering');
-        renderCards();
-        return;
-    }
+    if (!card1 || !card2) return;
     
-    // Clear any existing transitions
-    card1.style.transition = 'none';
-    card2.style.transition = 'none';
-    card1.style.transform = '';
-    card2.style.transform = '';
-    
-    // Force reflow
-    card1.offsetHeight;
-    card2.offsetHeight;
-    
-    // Calculate positions
-    const container = document.getElementById('cardsContainer');
-    const containerRect = container.getBoundingClientRect();
+    // 3. Calculate distance
     const card1Rect = card1.getBoundingClientRect();
     const card2Rect = card2.getBoundingClientRect();
+    const distance = card2Rect.left - card1Rect.left;
     
-    const distance = (card2Rect.left - containerRect.left) - (card1Rect.left - containerRect.left);
-    
-    if (Math.abs(distance) < 20) {
-        console.log(`Distance too small (${distance}px), just re-rendering`);
-        renderCards();
-        return;
-    }
-    
-    console.log(`Swapping cards ${idx1} and ${idx2}, distance: ${distance}px`);
-    
-    // Set up animation
-    card1.style.transition = 'transform 0.6s ease-in-out';
-    card2.style.transition = 'transform 0.6s ease-in-out';
+    // 4. Set dynamic transition speed
+    const ease = 'ease-in-out';
+    card1.style.transition = `transform ${duration}ms ${ease}`;
+    card2.style.transition = `transform ${duration}ms ${ease}`;
     card1.style.zIndex = '20';
     card2.style.zIndex = '20';
     
-    // Start animation
+    // 5. Animate
     requestAnimationFrame(() => {
         card1.style.transform = `translateX(${distance}px)`;
         card2.style.transform = `translateX(${-distance}px)`;
     });
     
-    // Clean up after animation
+    // 6. Cleanup and DOM Swap (Crucial Step)
     setTimeout(() => {
-        if (card1 && card1.parentNode) {
-            card1.style.transform = '';
-            card1.style.transition = '';
-            card1.style.zIndex = '';
-        }
-        if (card2 && card2.parentNode) {
-            card2.style.transform = '';
-            card2.style.transition = '';
-            card2.style.zIndex = '';
-        }
-        renderCards();
-    }, 600);
+        // Reset styles
+        card1.style.transition = 'none';
+        card2.style.transition = 'none';
+        card1.style.transform = '';
+        card2.style.transform = '';
+        card1.style.zIndex = '';
+        card2.style.zIndex = '';
+        
+        // Physically swap the DOM nodes to match the data array
+        // We do this instead of renderCards() to prevent "twitching"
+        swapDomNodes(card1, card2);
+        
+    }, duration); 
+}
+
+// Helper function to physically swap two elements in the DOM
+function swapDomNodes(node1, node2) {
+    const parent = node1.parentNode;
+    const sibling1 = node1.nextSibling === node2 ? node1 : node1.nextSibling;
+    
+    // Move node1 to before node2
+    node2.parentNode.insertBefore(node1, node2);
+    // Move node2 to where node1 used to be
+    parent.insertBefore(node2, sibling1);
 }
 
 function selectCard(index) {
