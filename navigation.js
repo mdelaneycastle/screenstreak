@@ -45,6 +45,19 @@ function formatDateHeader(date) {
 function loadChallengeForCurrentDate() {
     const challenge = getChallengeForDate(currentDate);
     
+    if (!challenge) {
+        document.querySelector('.movie-title').textContent = 'No Challenge Available';
+        document.querySelector('.challenge-number').textContent = '';
+        
+        const nameElements = document.querySelectorAll('.challenge-name');
+        nameElements.forEach(el => el.textContent = 'Check back on challenge days!');
+        
+        document.querySelector('.challenge-description').textContent = 'Challenges are only available on November 30th and December 1st.';
+        document.getElementById('startGameBtn').style.display = 'none';
+        updateDateDisplay();
+        return;
+    }
+    
     document.querySelector('.movie-title').textContent = challenge.movie;
     document.querySelector('.challenge-number').textContent = `Challenge #${challenge.id}`;
     
@@ -97,77 +110,88 @@ function updateDateDisplay() {
 }
 
 function updateNavigationButtons() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    currentDate.setHours(0, 0, 0, 0);
+    const currentDateStr = currentDate.toISOString().split('T')[0];
     
+    const prevBtn = document.getElementById('prevChallenge');
     const nextBtn = document.getElementById('nextChallenge');
     
-    if (currentDate.getTime() >= today.getTime()) {
+    if (currentDateStr === '2024-11-30') {
+        prevBtn.disabled = true;
+        prevBtn.style.opacity = '0.5';
+        prevBtn.style.cursor = 'not-allowed';
+        
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
+    } else if (currentDateStr === '2024-12-01') {
+        prevBtn.disabled = false;
+        prevBtn.style.opacity = '1';
+        prevBtn.style.cursor = 'pointer';
+        
         nextBtn.disabled = true;
         nextBtn.style.opacity = '0.5';
         nextBtn.style.cursor = 'not-allowed';
     } else {
-        nextBtn.disabled = false;
-        nextBtn.style.opacity = '1';
-        nextBtn.style.cursor = 'pointer';
+        prevBtn.disabled = true;
+        prevBtn.style.opacity = '0.5';
+        prevBtn.style.cursor = 'not-allowed';
+        
+        nextBtn.disabled = true;
+        nextBtn.style.opacity = '0.5';
+        nextBtn.style.cursor = 'not-allowed';
     }
 }
 
 function goToPreviousDay() {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - 1);
+    const currentDateStr = currentDate.toISOString().split('T')[0];
     
-    const dateStr = newDate.toISOString().split('T')[0];
-    window.location.href = `?date=${dateStr}`;
+    if (currentDateStr === '2024-12-01') {
+        window.location.href = `?date=2024-11-30`;
+    }
 }
 
 function goToNextDay() {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + 1);
+    const currentDateStr = currentDate.toISOString().split('T')[0];
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    newDate.setHours(0, 0, 0, 0);
-    
-    if (newDate.getTime() > today.getTime()) {
-        return;
-    }
-    
-    if (newDate.getTime() === today.getTime()) {
-        window.location.href = window.location.pathname;
-    } else {
-        const dateStr = newDate.toISOString().split('T')[0];
-        window.location.href = `?date=${dateStr}`;
+    if (currentDateStr === '2024-11-30') {
+        window.location.href = `?date=2024-12-01`;
     }
 }
 
 function updateRecentChallenges() {
     const nov30 = new Date('2024-11-30');
     const nov30Challenge = getChallengeForDate(nov30);
-    document.getElementById('nov30Challenge').textContent = 'Previous Challenge';
+    if (nov30Challenge) {
+        document.getElementById('nov30Challenge').textContent = 'Previous Challenge';
+    }
     
     const challengeLinks = document.querySelector('.challenge-links');
     challengeLinks.innerHTML = '';
     
+    const availableDates = [
+        new Date('2024-11-30'),
+        new Date('2024-12-01')
+    ];
+    
     const today = new Date();
-    for (let i = 1; i <= 5; i++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        
-        if (date < new Date('2024-01-01')) break;
-        
-        const challenge = getChallengeForDate(date);
-        const dateStr = date.toISOString().split('T')[0];
-        const displayDate = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-        
-        const link = document.createElement('a');
-        link.href = `?date=${dateStr}`;
-        link.className = 'challenge-link';
-        link.innerHTML = `${displayDate}`;
-        
-        challengeLinks.appendChild(link);
-    }
+    today.setHours(0, 0, 0, 0);
+    
+    availableDates.forEach(date => {
+        if (date <= today) {
+            const challenge = getChallengeForDate(date);
+            if (challenge) {
+                const dateStr = date.toISOString().split('T')[0];
+                const displayDate = date.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+                
+                const link = document.createElement('a');
+                link.href = `?date=${dateStr}`;
+                link.className = 'challenge-link';
+                link.innerHTML = `${displayDate}`;
+                
+                challengeLinks.appendChild(link);
+            }
+        }
+    });
 }
 
 function checkIfAlreadyPlayedDate(date) {

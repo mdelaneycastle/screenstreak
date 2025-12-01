@@ -142,20 +142,14 @@ const challenges = [
 ];
 
 function getChallengeForDate(date) {
-    const startDate = new Date('2024-11-30');
-    const daysDiff = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
+    const dateStr = date.toISOString().split('T')[0];
     
-    if (daysDiff === 0) {
+    if (dateStr === '2024-11-30') {
         return challenges[0];
-    } else if (daysDiff === 1) {
+    } else if (dateStr === '2024-12-01') {
         return challenges[15];
     } else {
-        const adjustedIndex = ((daysDiff - 2) % 18) + 1;
-        const skipIndices = [0, 15];
-        let finalIndex = adjustedIndex;
-        if (finalIndex >= 15) finalIndex += 2;
-        else if (finalIndex >= 1) finalIndex += 1;
-        return challenges[finalIndex];
+        return null;
     }
 }
 
