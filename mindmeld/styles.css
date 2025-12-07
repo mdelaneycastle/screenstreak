@@ -302,6 +302,34 @@ h1 {
     flex-direction: column;
     gap: 12px;
     margin-bottom: 20px;
+    position: relative;
+}
+
+.timer-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.timer-display {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.timer-display.warning {
+    animation: pulse 0.5s ease-in-out infinite;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+@keyframes timerPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 .word-input {
