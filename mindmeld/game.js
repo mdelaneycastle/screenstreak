@@ -15,7 +15,7 @@ let gameState = {
     currentWords: { player1: null, player2: null },
     history: [],
     timer: null,
-    timerSeconds: 10
+    timerSeconds: 20
 };
 
 // DOM Elements
@@ -297,7 +297,7 @@ function updateGamePhase(phase) {
 }
 
 function startTimer() {
-    gameState.timerSeconds = 10;
+    gameState.timerSeconds = 20;
     elements.timerDisplay.classList.remove('hidden');
     elements.timerDisplay.classList.remove('warning');
     elements.timerSeconds.textContent = gameState.timerSeconds;
@@ -306,7 +306,7 @@ function startTimer() {
         gameState.timerSeconds--;
         elements.timerSeconds.textContent = gameState.timerSeconds;
         
-        if (gameState.timerSeconds <= 3) {
+        if (gameState.timerSeconds <= 5) {
             elements.timerDisplay.classList.add('warning');
         }
         
@@ -540,7 +540,7 @@ function resetGameState() {
         currentWords: { player1: null, player2: null },
         history: [],
         timer: null,
-        timerSeconds: 10
+        timerSeconds: 20
     };
     elements.roomCodeInput.value = '';
     elements.wordInput.value = '';
