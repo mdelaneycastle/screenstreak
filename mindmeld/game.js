@@ -13,7 +13,9 @@ let gameState = {
     subscription: null,
     gamePhase: 'waiting', // waiting, initial, converging, meld
     currentWords: { player1: null, player2: null },
-    history: []
+    history: [],
+    timer: null,
+    timerSeconds: 10
 };
 
 // DOM Elements
@@ -48,7 +50,9 @@ const elements = {
     waitingForPlayers: document.getElementById('waitingForPlayers'),
     initialWords: document.getElementById('initialWords'),
     convergingWords: document.getElementById('convergingWords'),
-    mindMeldSuccess: document.getElementById('mindMeldSuccess')
+    mindMeldSuccess: document.getElementById('mindMeldSuccess'),
+    timerDisplay: document.getElementById('timerDisplay'),
+    timerSeconds: document.getElementById('timerSeconds')
 };
 
 // Initialize
@@ -76,6 +80,9 @@ function setupEventListeners() {
         if (e.key === 'Enter') submitWord();
     });
     elements.roomCodeInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase();
+    });
+    elements.wordInput.addEventListener('input', (e) => {
         e.target.value = e.target.value.toUpperCase();
     });
 }
@@ -230,10 +237,10 @@ function handleRoomUpdate(payload) {
         updateGameDisplay(room);
     }
     
-    // Check for mind meld
+    // Check for mind meld (convert to uppercase for comparison)
     if (room.player1_word && room.player2_word && 
-        room.player1_word.toLowerCase() === room.player2_word.toLowerCase()) {
-        handleMindMeld(room.player1_word);
+        room.player1_word.toUpperCase() === room.player2_word.toUpperCase()) {
+        handleMindMeld(room.player1_word.toUpperCase());
     }
 }
 
@@ -253,6 +260,9 @@ function updateGamePhase(phase) {
     elements.convergingWords.classList.add('hidden');
     elements.mindMeldSuccess.classList.add('hidden');
     
+    // Stop any existing timer
+    stopTimer();
+    
     // Show appropriate state
     switch (phase) {
         case 'waiting':
@@ -264,30 +274,73 @@ function updateGamePhase(phase) {
             elements.initialWords.classList.remove('hidden');
             elements.wordInputSection.classList.remove('hidden');
             elements.waitingForOther.classList.add('hidden');
+            startTimer();
             break;
         case 'converging':
             elements.convergingWords.classList.remove('hidden');
             elements.wordInputSection.classList.remove('hidden');
             elements.waitingForOther.classList.add('hidden');
+            startTimer();
             break;
         case 'waiting_for_other':
             elements.wordInputSection.classList.add('hidden');
             elements.waitingForOther.classList.remove('hidden');
+            stopTimer();
             break;
         case 'meld':
             elements.mindMeldSuccess.classList.remove('hidden');
             elements.wordInputSection.classList.add('hidden');
             elements.waitingForOther.classList.add('hidden');
+            stopTimer();
             break;
     }
 }
 
-async function submitWord() {
-    const word = elements.wordInput.value.trim();
+function startTimer() {
+    gameState.timerSeconds = 10;
+    elements.timerDisplay.classList.remove('hidden');
+    elements.timerDisplay.classList.remove('warning');
+    elements.timerSeconds.textContent = gameState.timerSeconds;
+    
+    gameState.timer = setInterval(() => {
+        gameState.timerSeconds--;
+        elements.timerSeconds.textContent = gameState.timerSeconds;
+        
+        if (gameState.timerSeconds <= 3) {
+            elements.timerDisplay.classList.add('warning');
+        }
+        
+        if (gameState.timerSeconds <= 0) {
+            stopTimer();
+            // Auto-submit empty word if time runs out
+            submitWord(true);
+        }
+    }, 1000);
+}
+
+function stopTimer() {
+    if (gameState.timer) {
+        clearInterval(gameState.timer);
+        gameState.timer = null;
+    }
+    elements.timerDisplay.classList.add('hidden');
+    elements.timerDisplay.classList.remove('warning');
+}
+
+async function submitWord(timedOut = false) {
+    const word = elements.wordInput.value.trim().toUpperCase();
     
     if (!word) {
-        showToast('Please enter a word', 'error');
-        return;
+        if (!timedOut) {
+            showToast('Please enter a word', 'error');
+            return;
+        } else {
+            // If timed out with no word, submit "TIMEOUT"
+            const timedOutWord = 'TIMEOUT';
+            elements.wordInput.value = '';
+            await submitWordToDatabase(timedOutWord);
+            return;
+        }
     }
     
     if (word.length > 30) {
@@ -296,7 +349,11 @@ async function submitWord() {
     }
     
     elements.wordInput.value = '';
-    
+    stopTimer();
+    await submitWordToDatabase(word);
+}
+
+async function submitWordToDatabase(word) {
     try {
         const updateField = gameState.playerNumber === 1 ? 'player1_word' : 'player2_word';
         const otherField = gameState.playerNumber === 1 ? 'player2_word' : 'player1_word';
@@ -320,19 +377,19 @@ async function submitWord() {
         
         // Check if other player has submitted
         if (currentRoom[otherField]) {
-            // Both words submitted, reveal them
+            // Both words submitted, reveal them (ensure uppercase)
+            const player1Word = updateField === 'player1_word' ? word : currentRoom[otherField].toUpperCase();
+            const player2Word = updateField === 'player2_word' ? word : currentRoom[otherField].toUpperCase();
+            
             updateGamePhase('converging');
-            elements.player1Word.textContent = updateField === 'player1_word' ? word : currentRoom[otherField];
-            elements.player2Word.textContent = updateField === 'player2_word' ? word : currentRoom[otherField];
+            elements.player1Word.textContent = player1Word;
+            elements.player2Word.textContent = player2Word;
             
             // Add to history
-            addToHistory(
-                updateField === 'player1_word' ? word : currentRoom[otherField],
-                updateField === 'player2_word' ? word : currentRoom[otherField]
-            );
+            addToHistory(player1Word, player2Word);
             
-            // Check for mind meld
-            if (word.toLowerCase() === currentRoom[otherField].toLowerCase()) {
+            // Check for mind meld (both already uppercase)
+            if (word === currentRoom[otherField].toUpperCase()) {
                 handleMindMeld(word);
             } else {
                 // Reset for next round after a delay
@@ -351,19 +408,21 @@ async function submitWord() {
 
 function updateGameDisplay(room) {
     if (room.player1_word && room.player2_word) {
-        // Both words submitted
-        elements.player1Word.textContent = room.player1_word;
-        elements.player2Word.textContent = room.player2_word;
+        // Both words submitted (ensure uppercase)
+        const word1 = room.player1_word.toUpperCase();
+        const word2 = room.player2_word.toUpperCase();
+        elements.player1Word.textContent = word1;
+        elements.player2Word.textContent = word2;
         updateGamePhase('converging');
         
         // Add to history if not already added
         if (!gameState.history.some(h => 
-            h.player1 === room.player1_word && h.player2 === room.player2_word)) {
-            addToHistory(room.player1_word, room.player2_word);
+            h.player1 === word1 && h.player2 === word2)) {
+            addToHistory(word1, word2);
         }
         
         // Reset for next round after delay
-        if (room.player1_word.toLowerCase() !== room.player2_word.toLowerCase()) {
+        if (word1 !== word2) {
             setTimeout(() => resetRound(), 3000);
         }
     } else if ((gameState.playerNumber === 1 && room.player1_word) ||
@@ -479,7 +538,9 @@ function resetGameState() {
         subscription: null,
         gamePhase: 'waiting',
         currentWords: { player1: null, player2: null },
-        history: []
+        history: [],
+        timer: null,
+        timerSeconds: 10
     };
     elements.roomCodeInput.value = '';
     elements.wordInput.value = '';
