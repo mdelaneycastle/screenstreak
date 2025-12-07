@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mind Meld - Word Association</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mind Meld</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cutive+Mono&family=Inter:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         <header>
             <div class="brand-badge">EST. 2025</div>
             <h1>Mind Meld.</h1>
-            <p class="subtitle">A game of linguistic convergence.</p>
+            <p class="subtitle">Linguistic Convergence</p>
         </header>
 
         <div id="startScreen" class="screen active">
@@ -26,9 +26,9 @@
                     <hr>
                 </div>
                 <h2>The Beginning</h2>
-                <p class="story-text">Two minds enter. One word emerges. Establish a connection to begin the experiment.</p>
+                <p class="story-text">Two minds. One word.<br>Establish a connection.</p>
                 
-                <div class="button-group">
+                <div class="button-group-vertical">
                     <button id="createRoomBtn" class="btn btn-primary">Create Study Group</button>
                     <button id="joinRoomBtn" class="btn btn-outline">Join Existing</button>
                 </div>
@@ -37,26 +37,24 @@
 
         <div id="roomScreen" class="screen">
             <div class="card book-page">
-                <h2 id="roomTitle" class="serif-title">Configuration</h2>
+                <h2 id="roomTitle" class="serif-title">Setup</h2>
                 
                 <div id="createRoomSection" class="hidden">
-                    <p class="instruction">Share this reference code:</p>
+                    <p class="instruction">Your Reference Code:</p>
                     <div class="room-code-display">
                         <span id="roomCode" class="code-text typewriter"></span>
-                        <button id="copyCodeBtn" class="btn-icon" title="Copy to Clipboard">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 4v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7.242a2 2 0 0 0-.602-1.43L16.083 2.57A2 2 0 0 0 14.685 2H10a2 2 0 0 0-2 2z"/><path d="M16 18v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2"/></svg>
+                        <button id="copyCodeBtn" class="btn-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         </button>
                     </div>
                     <div class="waiting-message">
-                        <div class="typing-indicator">
-                            <span>.</span><span>.</span><span>.</span>
-                        </div>
-                        <p class="italic-muted">Waiting for collaborator...</p>
+                        <div class="typing-indicator"><span>.</span><span>.</span><span>.</span></div>
+                        <p class="italic-muted">Waiting for partner...</p>
                     </div>
                 </div>
 
                 <div id="joinRoomSection" class="hidden">
-                    <p class="instruction">Enter reference code:</p>
+                    <p class="instruction">Enter Reference Code:</p>
                     <input type="text" id="roomCodeInput" class="code-input typewriter" maxlength="5" placeholder="X X X X X">
                     <button id="joinBtn" class="btn btn-primary full-width">Connect</button>
                 </div>
@@ -68,8 +66,9 @@
         <div id="gameScreen" class="screen">
             <div class="game-header">
                 <div class="room-info">
-                    <span class="label">REF:</span> <strong id="currentRoomCode" class="mono-badge"></strong>
-                    <span id="connectionStatus" class="status-indicator" title="Connected"></span>
+                    <span class="label">REF:</span>
+                    <strong id="currentRoomCode" class="mono-badge"></strong>
+                    <span id="connectionStatus" class="status-indicator"></span>
                 </div>
                 <button id="leaveGameBtn" class="btn btn-small btn-text">Resign</button>
             </div>
@@ -82,11 +81,11 @@
                     
                     <div id="initialWords" class="state-message hidden">
                         <h3 class="serif-title">Round 1</h3>
-                        <p>Provide an initial seed word.</p>
+                        <p>Enter a seed word.</p>
                     </div>
 
                     <div id="convergingWords" class="state-message hidden">
-                        <p class="instruction">Find the common thread:</p>
+                        <p class="instruction">Find the connection:</p>
                         <div class="word-display">
                             <div class="word-card">
                                 <span class="player-label">PARTICIPANT A</span>
@@ -104,13 +103,12 @@
                         <div class="celebration">
                             <div class="stamp-container">
                                 <div class="stamp-circle">
-                                    <div class="stamp-text">CONVERGENCE</div>
+                                    <div class="stamp-text">MATCH</div>
                                 </div>
                             </div>
-                            <h2 class="serif-title">Meld Achieved.</h2>
-                            <p>The shared thought is:</p>
+                            <h2 class="serif-title">Converged!</h2>
                             <div class="meld-word typewriter" id="meldWord"></div>
-                            <button id="playAgainBtn" class="btn btn-primary">Start New Chapter</button>
+                            <button id="playAgainBtn" class="btn btn-primary full-width">Next Chapter</button>
                         </div>
                     </div>
                 </div>
@@ -122,22 +120,19 @@
                         </div>
                     </div>
                     <div class="input-group">
-                        <input type="text" id="wordInput" class="word-input typewriter" placeholder="Type your word here..." maxlength="30">
+                        <input type="text" id="wordInput" class="word-input typewriter" placeholder="Type word..." maxlength="30">
                         <button id="submitWordBtn" class="btn btn-primary submit-arrow">→</button>
                     </div>
                 </div>
 
                 <div id="waitingForOther" class="waiting-indicator hidden">
-                    <div class="typing-indicator">
-                        <span>.</span><span>.</span><span>.</span>
-                    </div>
-                    <p class="italic-muted">Partner is thinking...</p>
+                    <div class="typing-indicator"><span>.</span><span>.</span><span>.</span></div>
+                    <p class="italic-muted">Partner is writing...</p>
                 </div>
 
                 <div class="history-section">
                     <h3>Appendix (History)</h3>
-                    <div id="gameHistory" class="history-list">
-                        </div>
+                    <div id="gameHistory" class="history-list"></div>
                 </div>
             </div>
         </div>
